@@ -98,12 +98,16 @@ def convert(imgdir, annpath):
         regions = ann[key]["regions"]
         # for one image ,there are many regions,they share the same img id
         for region in regions:
-            cat = region['region_attributes']['label']
-            assert cat in ['rib', 'clavicle']
-            if cat == 'rib':
-                cat_id = 1
-            else:
-                cat_id = 2
+            // hardcode to be 'panel'
+            //cat = region['region_attributes']['label']
+            cat = 'panel'
+            //assert cat in ['rib', 'clavicle']
+            
+            # if cat == 'rib':
+            #     cat_id = 1
+            # else:
+            #     cat_id = 2
+            cat_id = 1
             iscrowd = 0
             points_x = region['shape_attributes']['all_points_x']
             points_y = region['shape_attributes']['all_points_y']
@@ -112,7 +116,7 @@ def convert(imgdir, annpath):
             max_x = max(points_x)
             min_y = min(points_y)
             max_y = max(points_y)
-            box = [min_x, min_y, max_x-min_x, max_y-min_y]
+            box = zip(points_x, points_y)
             segmentation = get_segmenation(points_x, points_y)
             # make annotations info and storage it in coco_output['annotations']
             ann_info = create_annotation_info(ann_id, img_id, cat_id, iscrowd, area, box, segmentation)
