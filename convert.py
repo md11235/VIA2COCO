@@ -1,9 +1,11 @@
+# -*- coding: utf-8 -*-
+
 import os
 import cv2
 import datetime
 import json
 import getArea
-
+import sys
 
 
 def create_image_info(image_id, file_name, image_size,
@@ -84,7 +86,7 @@ def convert(imgdir, annpath):
     coco_output['images'] = []
     coco_output['annotations'] = []
 
-    ann = json.load(open(annpath))
+    ann = json.load(open(annpath, encoding="utf-8"))
     # annotations id start from zero
     ann_id = 0
     #in VIA annotations, keys are image name
@@ -93,15 +95,20 @@ def convert(imgdir, annpath):
         filename = ann[key]['filename']
         img = cv2.imread(imgdir+filename)
         # make image info and storage it in coco_output['images']
-        image_info = create_image_info(img_id, os.path.basename(filename), img.shape[:2])
+        try:
+            image_info = create_image_info(img_id, os.path.basename(filename), img.shape[:2])
+        except Exception as e:
+            print(e, file=sys.stderr)
+            print("abnormal image: {}".format(imgdir+filename), file=sys.stderr)
+            continue
         coco_output['images'].append(image_info)
         regions = ann[key]["regions"]
         # for one image ,there are many regions,they share the same img id
         for region in regions:
-            // hardcode to be 'panel'
-            //cat = region['region_attributes']['label']
+            # hardcode to be 'panel'
+            # cat = region['region_attributes']['label']
             cat = 'panel'
-            //assert cat in ['rib', 'clavicle']
+            # assert cat in ['rib', 'clavicle']
             
             # if cat == 'rib':
             #     cat_id = 1
@@ -116,7 +123,7 @@ def convert(imgdir, annpath):
             max_x = max(points_x)
             min_y = min(points_y)
             max_y = max(points_y)
-            box = zip(points_x, points_y)
+            box = list(zip(points_x, points_y))
             segmentation = get_segmenation(points_x, points_y)
             # make annotations info and storage it in coco_output['annotations']
             ann_info = create_annotation_info(ann_id, img_id, cat_id, iscrowd, area, box, segmentation)
